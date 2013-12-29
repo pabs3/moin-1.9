@@ -1269,9 +1269,22 @@ actionsMenuInit('%(label)s');
         if 'edit' in self.request.cfg.actions_excluded:
             return ""
 
-        if not (page.isWritable() and
-                self.request.user.may.write(page.page_name)):
-            return self.disabledEdit()
+        if not page.isWritable():
+            return self.immutablePage()
+        if not self.request.user.may.write(page.page_name):
+            user_valid = self.request.user.valid
+            user_name = self.request.user.name
+            user_may_name = self.request.user.may.name
+            self.request.user.name = self.request.user.may.name = u'Known'
+            self.request.user.valid = 1
+            if self.request.user.may.write(page.page_name):
+                result = self.loginToEdit()
+            else:
+                result = self.editNotAllowed()
+            self.request.user.valid = user_valid
+            self.request.user.name = user_name
+            self.request.user.may.name = user_may_name
+            return result
 
         _ = self.request.getText
         querystr = {'action': 'edit'}
@@ -1325,11 +1338,23 @@ var gui_editor_link_text = "%(text)s";
        'text': _('Edit (GUI)'),
       }
 
-    def disabledEdit(self):
-        """ Return a disabled edit link """
+    def immutablePage(self):
+        """ Return an immutable page message """
         _ = self.request.getText
         return ('<span class="disabled">%s</span>'
                 % _('Immutable Page'))
+
+    def editNotAllowed(self):
+        """ Return an edit not allowed message """
+        _ = self.request.getText
+        return ('<span class="disabled">%s</span>'
+                % _('You are not allowed to edit this page.'))
+
+    def loginToEdit(self):
+        """ Return a login to edit message """
+        _ = self.request.getText
+        return ('<span class="disabled">%s</span>'
+                % _('You need to login to edit this page.'))
 
     def infoLink(self, page):
         """ Return link to page information """
