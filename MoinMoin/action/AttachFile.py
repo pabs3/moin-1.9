@@ -393,7 +393,7 @@ def _access_file(pagename, request):
     return (pagename, None, None)
 
 
-def _build_filelist(request, pagename, showheader, readonly, mime_type='*', filterfn=None):
+def _build_filelist(request, pagename, showheader, readonly, mime_type='*', filterfn=None, downloadonly=False):
     _ = request.getText
     fmt = request.html_formatter
 
@@ -471,9 +471,10 @@ function checkAll(bx, targets_name) {
                          fmt.text(label_get) +
                          fmt.url(0))
 
-            links.append(fmt.url(1, getAttachUrl(pagename, file, request, do='view')) +
-                         fmt.text(label_view) +
-                         fmt.url(0))
+            if may_read and not downloadonly:
+                links.append(fmt.url(1, getAttachUrl(pagename, file, request, do='view')) +
+                             fmt.text(label_view) +
+                             fmt.url(0))
 
             if may_write and not readonly:
                 edit_url = getAttachUrl(pagename, file, request, do='modify')
